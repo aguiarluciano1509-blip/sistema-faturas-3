@@ -1,290 +1,172 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <title>Fatura - CROWN CAFE</title>
+<meta charset="UTF-8">
+<title>Emissor de Faturas - Lux Café</title>
 
-  <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    .invoice { max-width: 900px; margin: auto; padding: 20px; border: 1px solid #ccc; }
+    h1 { text-align: center; }
 
-  <!-- jsPDF + html2canvas -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.5.3/jspdf.debug.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
-  <style>
-    body {
-      font-family: 'Poppins', sans-serif;
-      margin: 0;
-      padding: 0;
-      background: #000000;
-      color: #ffffff;
+    .logo {
+        width: 220px;
+        display: block;
+        margin: 0 auto 20px auto;
     }
 
-    header {
-      text-align: center;
-      padding: 30px 0;
-      border-bottom: 1px solid #222;
-    }
+    label { display: block; margin-top: 10px; font-weight: bold; }
+    input, textarea { width: 100%; padding: 6px; margin-top: 4px; }
 
-    header img {
-      width: 140px;
-      margin-bottom: 10px;
-    }
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+    th, td { border: 1px solid #ccc; padding: 6px; }
+    tfoot td { font-weight: bold; }
 
-    h1 {
-      font-weight: 600;
-      color: #FF7A00;
-      margin: 5px 0;
-    }
+    .actions { margin-top: 20px; text-align: right; }
+    .actions button { padding: 10px 18px; margin-left: 10px; }
 
-    .container {
-      width: 90%;
-      max-width: 1100px;
-      margin: auto;
-      padding: 20px 0;
+    @media print {
+        .actions { display: none; }
+        body { margin: 0; }
     }
-
-    .box {
-      background: #0d0d0d;
-      padding: 20px;
-      border-radius: 8px;
-      border: 1px solid #1a1a1a;
-      margin-bottom: 20px;
-    }
-
-    .box h3 {
-      color: #FF7A00;
-      margin-bottom: 10px;
-    }
-
-    input {
-      width: 100%;
-      padding: 10px;
-      border-radius: 6px;
-      border: 1px solid #333;
-      background: #111;
-      color: #fff;
-      margin-bottom: 10px;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 15px;
-      background: #0d0d0d;
-      border-radius: 8px;
-      overflow: hidden;
-    }
-
-    th {
-      background: #FF7A00;
-      color: #000;
-      padding: 12px;
-      font-weight: 600;
-    }
-
-    td {
-      padding: 10px;
-      border-bottom: 1px solid #222;
-    }
-
-    tr:nth-child(even) {
-      background: #111;
-    }
-
-    .btn {
-      background: #FF7A00;
-      color: #000;
-      padding: 12px 25px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: 600;
-      transition: 0.2s;
-      margin: 10px;
-    }
-
-    .btn:hover {
-      background: #e56d00;
-    }
-
-    .center {
-      text-align: center;
-      margin-top: 20px;
-    }
-
-    .totais {
-      text-align: right;
-      font-size: 18px;
-      margin-top: 10px;
-    }
-
-    footer {
-      text-align: center;
-      padding: 20px;
-      color: #777;
-      margin-top: 40px;
-      border-top: 1px solid #222;
-    }
-  </style>
+</style>
 </head>
 
 <body>
 
-<header>
-  <img src="logo.png" alt="Logo CROWN CAFE">
-  <h1>FATURA</h1>
-  <h3>Fatura Nº: <span id="numeroFatura"></span></h3>
-</header>
+<div class="invoice">
 
-<div class="container">
+    <img src="logo.png" class="logo">
 
-  <div class="box">
-    <h3>Emitente</h3>
-    <input type="text" placeholder="Nome da Empresa">
-    <input type="text" placeholder="Endereço">
-    <input type="text" placeholder="E-mail">
-    <input type="text" placeholder="CNPJ">
-  </div>
+    <h1>Fatura - Lux Café</h1>
 
-  <div class="box">
-    <h3>Cliente</h3>
-    <input type="text" placeholder="Nome do Cliente">
-    <input type="text" placeholder="Endereço">
-    <input type="text" placeholder="E-mail">
-    <input type="text" placeholder="CPF/CNPJ">
-  </div>
+    <label>Número da Fatura</label>
+    <input id="numeroFatura">
 
-  <table id="tabela-itens">
-    <tr>
-      <th>Descrição</th>
-      <th>Qtd</th>
-      <th>Preço Unitário</th>
-      <th>Total</th>
-    </tr>
-    <tr>
-      <td><input type="text" placeholder="Item/Serviço"></td>
-      <td><input type="number" value="1" oninput="calcularTotais()"></td>
-      <td><input type="number" value="0" step="0.01" oninput="calcularTotais()"></td>
-      <td><input type="text" readonly></td>
-    </tr>
-  </table>
+    <label>Cliente</label>
+    <input id="cliente">
 
-  <div class="center">
-    <button class="btn" onclick="adicionarItem()">+ Adicionar item</button>
-  </div>
+    <label>Data de emissão</label>
+    <input id="dataEmissao" type="date">
 
-  <p class="totais"><strong>Subtotal:</strong> <span id="subtotal">R$ 0,00</span></p>
-  <p class="totais"><strong>Total:</strong> <span id="total">R$ 0,00</span></p>
+    <label>Data de vencimento</label>
+    <input id="dataVencimento" type="date">
 
-  <div class="box">
-    <h3>Observações</h3>
-    <input type="text" placeholder="Ex: Pagamento até 10 dias após emissão">
-  </div>
+    <h3>Itens</h3>
+    <table id="itens">
+        <thead>
+            <tr>
+                <th>Descrição</th>
+                <th>Qtd</th>
+                <th>Valor unitário</th>
+                <th>Total</th>
+                <th>Ação</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+        <tfoot>
+            <tr>
+                <td colspan="3">Total geral</td>
+                <td id="totalGeral">0,00</td>
+                <td></td>
+            </tr>
+        </tfoot>
+    </table>
 
-  <footer>
-    <p>Obrigado por fazer negócios conosco!</p>
-  </footer>
+    <h3>Dados fixos da empresa</h3>
+    <p><strong>Luciano Aguiar Santos ME (Lux Café)</strong></p>
+    <p>CNPJ: 12.484.624/0001-00</p>
+    <p>Rua Oswald de Andrade, nº 9, apt 02 — Vitória da Conquista - BA</p>
 
-  <div class="center">
-    <button class="btn" onclick="gerarPDF()">Gerar PDF</button>
-    <a href="painel.html"><button class="btn">Abrir Painel de Faturas</button></a>
-  </div>
+    <div class="actions">
+        <button onclick="adicionarItem()">Adicionar item</button>
+        <button onclick="salvarFatura()">Salvar fatura</button>
+        <button onclick="novaFatura()">Nova fatura</button>
+        <button onclick="window.print()">Imprimir / PDF</button>
+    </div>
 
 </div>
 
 <script>
-  function carregarNumeroFatura() {
-    let numero = localStorage.getItem("numeroFatura");
-    if (!numero) numero = 1;
-    document.getElementById("numeroFatura").innerText = numero.toString().padStart(3, "0");
-  }
+function formatarMoeda(valor) {
+    return valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+}
 
-  function incrementarNumeroFatura() {
-    let numero = localStorage.getItem("numeroFatura");
-    numero = numero ? parseInt(numero) + 1 : 1;
-    localStorage.setItem("numeroFatura", numero);
-  }
+function atualizarTotal() {
+    let total = 0;
+    document.querySelectorAll('#itens tbody tr').forEach(tr => {
+        const qtd = parseFloat(tr.querySelector('.qtd').value) || 0;
+        const unit = parseFloat(tr.querySelector('.unit').value) || 0;
+        const subtotal = qtd * unit;
+        tr.querySelector('.subtotal').textContent = formatarMoeda(subtotal);
+        total += subtotal;
+    });
+    document.getElementById('totalGeral').textContent = formatarMoeda(total);
+}
 
-  function calcularTotais() {
-    let tabela = document.getElementById("tabela-itens");
-    let subtotal = 0;
+function removerLinha(btn) {
+    btn.closest('tr').remove();
+    atualizarTotal();
+}
 
-    for (let i = 1; i < tabela.rows.length; i++) {
-      let qtd = parseFloat(tabela.rows[i].cells[1].children[0].value) || 0;
-      let preco = parseFloat(tabela.rows[i].cells[2].children[0].value) || 0;
-      let total = qtd * preco;
-      tabela.rows[i].cells[3].children[0].value = "R$ " + total.toFixed(2);
-      subtotal += total;
-    }
-
-    document.getElementById("subtotal").innerText = "R$ " + subtotal.toFixed(2);
-    document.getElementById("total").innerText = "R$ " + subtotal.toFixed(2);
-  }
-
-  function adicionarItem() {
-    let tabela = document.getElementById("tabela-itens");
-    let novaLinha = tabela.insertRow();
-    novaLinha.innerHTML = `
-      <td><input type="text" placeholder="Item/Serviço"></td>
-      <td><input type="number" value="1" oninput="calcularTotais()"></td>
-      <td><input type="number" value="0" step="0.01" oninput="calcularTotais()"></td>
-      <td><input type="text" readonly></td>
+function adicionarItem(desc = "", qtd = 1, unit = 0) {
+    const tbody = document.querySelector('#itens tbody');
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+        <td><input class="desc" value="${desc}"></td>
+        <td><input class="qtd" type="number" step="0.01" value="${qtd}"></td>
+        <td><input class="unit" type="number" step="0.01" value="${unit}"></td>
+        <td class="subtotal">0,00</td>
+        <td><button onclick="removerLinha(this)">Remover</button></td>
     `;
-  }
+    tbody.appendChild(tr);
+    tr.querySelectorAll('input').forEach(i => i.addEventListener('input', atualizarTotal));
+    atualizarTotal();
+}
 
-  function salvarFatura() {
-    let numero = document.getElementById("numeroFatura").innerText;
-    let total = document.getElementById("total").innerText.replace("R$ ", "");
-    let data = new Date().toLocaleDateString("pt-BR");
+function salvarFatura() {
+    const dados = {
+        numero: document.getElementById('numeroFatura').value,
+        cliente: document.getElementById('cliente').value,
+        emissao: document.getElementById('dataEmissao').value,
+        vencimento: document.getElementById('dataVencimento').value,
+        itens: []
+    };
 
-    let faturas = JSON.parse(localStorage.getItem("faturas")) || [];
-
-    faturas.push({
-      numero: numero,
-      data: data,
-      total: total
+    document.querySelectorAll('#itens tbody tr').forEach(tr => {
+        dados.itens.push({
+            desc: tr.querySelector('.desc').value,
+            qtd: tr.querySelector('.qtd').value,
+            unit: tr.querySelector('.unit').value
+        });
     });
 
-    localStorage.setItem("faturas", JSON.stringify(faturas));
-  }
+    localStorage.setItem("faturaLuxCafe", JSON.stringify(dados));
+    alert("Fatura salva com sucesso!");
+}
 
-  async function gerarPDF() {
-    const element = document.body;
+function carregarFatura() {
+    const dados = JSON.parse(localStorage.getItem("faturaLuxCafe"));
+    if (!dados) return;
 
-    html2canvas(element, { scale: 2 }).then(canvas => {
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF("p", "mm", "a4");
+    document.getElementById('numeroFatura').value = Number(dados.numero) + 1;
+    document.getElementById('cliente').value = dados.cliente;
+    document.getElementById('dataEmissao').value = dados.emissao;
+    document.getElementById('dataVencimento').value = dados.vencimento;
 
-      const imgWidth = 210;
-      const pageHeight = 295;
-      const imgHeight = canvas.height * imgWidth / canvas.width;
-      let heightLeft = imgHeight;
-      let position = 0;
+    document.querySelector('#itens tbody').innerHTML = "";
+    dados.itens.forEach(i => adicionarItem(i.desc, i.qtd, i.unit));
+}
 
-      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
+function novaFatura() {
+    document.getElementById('cliente').value = "";
+    document.querySelector('#itens tbody').innerHTML = "";
+    adicionarItem();
+}
 
-      while (heightLeft >= 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
-      }
-
-      pdf.save("fatura.pdf");
-
-      salvarFatura();
-      incrementarNumeroFatura();
-      carregarNumeroFatura();
-    });
-  }
-
-  window.onload = function() {
-    carregarNumeroFatura();
-    calcularTotais();
-  };
+window.onload = carregarFatura;
 </script>
 
 </body>
 </html>
+
