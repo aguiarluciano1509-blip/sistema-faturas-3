@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Fatura - CROWN CAFE</title>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <!-- jsPDF + html2canvas -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.5.3/jspdf.debug.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #000000;
+      color: #ffffff;
+    }
+
+    header {
+      text-align: center;
+      padding: 30px 0;
+      border-bottom: 1px solid #222;
+    }
+
+    header img {
+      width: 140px;
+      margin-bottom: 10px;
+    }
+
+    h1 {
+      font-weight: 600;
+      color: #FF7A00;
+      margin: 5px 0;
+    }
+
+    .container {
+      width: 90%;
+      max-width: 1100px;
+      margin: auto;
+      padding: 20px 0;
+    }
+
+    .box {
+      background: #0d0d0d;
+      padding: 20px;
+      border-radius: 8px;
+      border: 1px solid #1a1a1a;
+      margin-bottom: 20px;
+    }
+
+    .box h3 {
+      color: #FF7A00;
+      margin-bottom: 10px;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #333;
+      background: #111;
+      color: #fff;
+      margin-bottom: 10px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+      background: #0d0d0d;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    th {
+      background: #FF7A00;
+      color: #000;
+      padding: 12px;
+      font-weight: 600;
+    }
+
+    td {
+      padding: 10px;
+      border-bottom: 1px solid #222;
+    }
+
+    tr:nth-child(even) {
+      background: #111;
+    }
+
+    .btn {
+      background: #FF7A00;
+      color: #000;
+      padding: 12px 25px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: 0.2s;
+      margin: 10px;
+    }
+
+    .btn:hover {
+      background: #e56d00;
+    }
+
+    .center {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    .totais {
+      text-align: right;
+      font-size: 18px;
+      margin-top: 10px;
+    }
+
+    footer {
+      text-align: center;
+      padding: 20px;
+      color: #777;
+      margin-top: 40px;
+      border-top: 1px solid #222;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <img src="logo.png" alt="Logo CROWN CAFE">
+  <h1>FATURA</h1>
+  <h3>Fatura Nº: <span id="numeroFatura"></span></h3>
+</header>
+
+<div class="container">
+
+  <div class="box">
+    <h3>Emitente</h3>
+    <input type="text" placeholder="Nome da Empresa">
+    <input type="text" placeholder="Endereço">
+    <input type="text" placeholder="E-mail">
+    <input type="text" placeholder="CNPJ">
+  </div>
+
+  <div class="box">
+    <h3>Cliente</h3>
+    <input type="text" placeholder="Nome do Cliente">
+    <input type="text" placeholder="Endereço">
+    <input type="text" placeholder="E-mail">
+    <input type="text" placeholder="CPF/CNPJ">
+  </div>
+
+  <table id="tabela-itens">
+    <tr>
+      <th>Descrição</th>
+      <th>Qtd</th>
+      <th>Preço Unitário</th>
+      <th>Total</th>
+    </tr>
+    <tr>
+      <td><input type="text" placeholder="Item/Serviço"></td>
+      <td><input type="number" value="1" oninput="calcularTotais()"></td>
+      <td><input type="number" value="0" step="0.01" oninput="calcularTotais()"></td>
+      <td><input type="text" readonly></td>
+    </tr>
+  </table>
+
+  <div class="center">
+    <button class="btn" onclick="adicionarItem()">+ Adicionar item</button>
+  </div>
+
+  <p class="totais"><strong>Subtotal:</strong> <span id="subtotal">R$ 0,00</span></p>
+  <p class="totais"><strong>Total:</strong> <span id="total">R$ 0,00</span></p>
+
+  <div class="box">
+    <h3>Observações</h3>
+    <input type="text" placeholder="Ex: Pagamento até 10 dias após emissão">
+  </div>
+
+  <footer>
+    <p>Obrigado por fazer negócios conosco!</p>
+  </footer>
+
+  <div class="center">
+    <button class="btn" onclick="gerarPDF()">Gerar PDF</button>
+    <a href="painel.html"><button class="btn">Abrir Painel de Faturas</button></a>
+  </div>
+
+</div>
+
+<script>
+  function carregarNumeroFatura() {
+    let numero = localStorage.getItem("numeroFatura");
+    if (!numero) numero = 1;
+    document.getElementById("numeroFatura").innerText = numero.toString().padStart(3, "0");
+  }
+
+  function incrementarNumeroFatura() {
+    let numero = localStorage.getItem("numeroFatura");
+    numero = numero ? parseInt(numero) + 1 : 1;
+    localStorage.setItem("numeroFatura", numero);
+  }
+
+  function calcularTotais() {
+    let tabela = document.getElementById("tabela-itens");
+    let subtotal = 0;
+
+    for (let i = 1; i < tabela.rows.length; i++) {
+      let qtd = parseFloat(tabela.rows[i].cells[1].children[0].value) || 0;
+      let preco = parseFloat(tabela.rows[i].cells[2].children[0].value) || 0;
+      let total = qtd * preco;
+      tabela.rows[i].cells[3].children[0].value = "R$ " + total.toFixed(2);
+      subtotal += total;
+    }
+
+    document.getElementById("subtotal").innerText = "R$ " + subtotal.toFixed(2);
+    document.getElementById("total").innerText = "R$ " + subtotal.toFixed(2);
+  }
+
+  function adicionarItem() {
+    let tabela = document.getElementById("tabela-itens");
+    let novaLinha = tabela.insertRow();
+    novaLinha.innerHTML = `
+      <td><input type="text" placeholder="Item/Serviço"></td>
+      <td><input type="number" value="1" oninput="calcularTotais()"></td>
+      <td><input type="number" value="0" step="0.01" oninput="calcularTotais()"></td>
+      <td><input type="text" readonly></td>
+    `;
+  }
+
+  function salvarFatura() {
+    let numero = document.getElementById("numeroFatura").innerText;
+    let total = document.getElementById("total").innerText.replace("R$ ", "");
+    let data = new Date().toLocaleDateString("pt-BR");
+
+    let faturas = JSON.parse(localStorage.getItem("faturas")) || [];
+
+    faturas.push({
+      numero: numero,
+      data: data,
+      total: total
+    });
+
+    localStorage.setItem("faturas", JSON.stringify(faturas));
+  }
+
+  async function gerarPDF() {
+    const element = document.body;
+
+    html2canvas(element, { scale: 2 }).then(canvas => {
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("p", "mm", "a4");
+
+      const imgWidth = 210;
+      const pageHeight = 295;
+      const imgHeight = canvas.height * imgWidth / canvas.width;
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
+      pdf.save("fatura.pdf");
+
+      salvarFatura();
+      incrementarNumeroFatura();
+      carregarNumeroFatura();
+    });
+  }
+
+  window.onload = function() {
+    carregarNumeroFatura();
+    calcularTotais();
+  };
+</script>
+
+</body>
+</html>
